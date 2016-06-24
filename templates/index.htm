@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>yingchuan BBS</title>
+    {% load staticfiles %}
+    <!-- Bootstrap core CSS -->
+    <link type="text/css" href="{% static "bootstrap/css/bootstrap.min.css"%}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link type="text/css" href="{% static "bootstrap/css/navbar-fixed-top.css"%}" rel="stylesheet">
+     <link type="text/css" href="{% static "bootstrap/css/custom.css"%}" rel="stylesheet">
+      {% block head-js %}
+      {% endblock %}
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">影传社区</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+           <!-- <li><a href="{% url 'indexhpy'%}">综合区</a></li>
+              解决综合区的问题-->
+            <!--<li><a href="{% url 'categoryhpy' 17%}">数媒区</a></li>
+            <li><a href="{% url 'categoryhpy' 18%}">广电区</a></li>
+              <li><a href="{% url 'categoryhpy' 19%}">戏剧区</a></li>
+               <li><a href="{% url 'categoryhpy' 20%}">动画区</a></li>-->
+              <li><a href="{% url 'chat' %}">聊天室</a></li>
+
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+              {% if request.user.is_authenticated %}
+
+           <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ request.user }} <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="{% url 'new_article'%}">发帖</a></li>
+                <!--<li><a href="#">Another action</a></li>
+                <li><a href="#">Something else here</a></li>
+                <li role="separator" class="divider"></li>
+                <li class="dropdown-header">Nav header</li>
+                <li><a href="#">Separated link</a></li>-->
+                <li><a href="{% url 'logout' %}">注销</a></li>
+              </ul>
+            </li>
+              {% else %}
+              <li><a href="{%  url 'login'  %}">登录 </a></li>
+              {% endif %}
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+
+      <!-- Main component for a primary marketing message or call to action -->
+      {%block page-container %}
+          <div class="row">
+          <div class="col-md-8 left-content-panel">
+          <div class="content-box">
+              {%for article in articles reversed%}
+                  <div class="article-box row">
+                  <div class="article-head-img col-md-3">
+                      <img src="/static/imgs/timg.png">
+                      <!--linux 软连接-->
+                  </div>
+                  <div class="action-summary col-md-9">
+                      <h4><a href="{% url 'article_detail' article.id  %}">{{ article.title }}</a></h4>
+                      <div class="article-attr">
+                          <ul class="list-inline">
+                              <li>{{ article.author.name }}</li>
+                              <li>{{ article.publish_data }}</li>
+                              <li>thumbup:{{ article.thumbup_set.select_related.count }}</li>
+                              <!--select_related形成一个列表-->
+                              <li>comments:{{ article.commenthpy_set.select_related.count}}</li>
+                          </ul>
+                      </div>
+                      <p>{{ article.summary }}</p>
+                  </div>
+                  </div>
+                  <hr>
+              {% endfor %}
+
+          </div>
+
+          </div>
+          <!--返回url-->
+          <div class="col-md-4 right-sidebar">
+          bar
+
+          </div>
+
+        {%endblock  %}
+
+    </div> <!-- /container -->
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    {% load staticfiles%}
+    <script src="{% static "jquery/jquery.min.js" %}"></script>
+    <script src="{% static "bootstrap/js/bootstrap.min.js"%}"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="{% static "bootstrap/js/ie10.js"%}"></script>
+
+
+  <script type="text/javascript">
+      $(document).ready(function(){
+
+         var menus = $("#navbar a[href='{{request.path}}']")[0];
+          //("#navbar a[href='{{request.path}}']")返回列表，取第一个
+         //返回0然后再用$
+          $(menus).parent().addClass("active");
+          //返回html元素，加上$表示jquery
+          $(menus).parent().siblings().removeClass("active");
+          //sibling同属兄弟
+          //综合区出现问题
+         // console.log(menus);
+          //返回列表格式
+      });
+  </script>
+
+{% block bottom-js %}
+
+  {% endblock %}
+  </body>
+</html>

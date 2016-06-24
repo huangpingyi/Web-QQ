@@ -1,0 +1,231 @@
+
+{% extends 'index.htm' %}
+
+{% block page-container %}
+    {% csrf_token %}
+<div>
+
+  <!-- Nav tabs -->
+  <!--切换效果实现用id实现切换,data_type-->
+  <ul class="nav nav-tabs" role="tablist">
+      <li role="presentation" class="active"><a href="#contact-box" aria-controls="home" role="tab" data-toggle="tab">联系人</a></li>
+    <li role="presentation"><a href="#contact-group-box" aria-controls="profile" role="tab" data-toggle="tab">群组</a></li>
+    <!--<li role="presentation"><a href="#contact-box" aria-controls="messages" role="tab" data-toggle="tab">配置</a></li>-->
+  </ul>
+
+  <!-- Tab panes -->
+<!--联系人列表的设计-->
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="contact-box">
+        <div class="row chat-box" >
+            <div class="contact-list col-md-3">
+                <div class="contact-list-head">
+                    <input type="text"/>
+                    <!--搜索框-->
+                </div>
+
+                     <!--联系人列表-->
+                  <div  id="contact-list" class="list-group">
+                      {% for contact in request.user.userprofilehpy.friends.select_related %}
+
+                          <a  contact-id ="{{ contact.id }}"  contact-type="single"  href="#" class="list-group-item">
+                          <!--用户自定义id-->
+                              <span style="background: orangered" class="badge hide">0</span>
+                                 {{ contact.name }}
+
+                           </a>
+                      {% endfor %}
+                  </div>
+
+                </div>
+
+            <div class="dialog-box " style="margin-bottom: 0px; width: 70%">
+                <div class="dialog-box-head">
+                    <span contact-id="-10" contact-type="single"></span>
+                </div>
+                <div class="dialog-box-content">
+                 <!--聊天框-->
+                </div>
+                 <div class="dialog-box-utils">
+                     img
+                </div>
+                 <div class="dialog-box-sendmsg">
+                    <textarea name="msg"></textarea>
+                </div>
+        </div>
+</div>
+
+    </div>
+    <div role="tabpanel" class="tab-pane" id="contact-group-box">...</div>
+    <div role="tabpanel" class="tab-pane" id="Config">...</div>
+  </div>
+
+</div>
+{% endblock %}
+
+ {% block bottom-js %}
+<script type="text/javascript">
+//消息临时保存
+      all_dialog_sessions = {
+          'single':[],
+          'group':[]
+      };
+
+           $(document).ready(function(){
+               //用递归，结束这个线程在进行下一个，不用for
+
+               GetNewMsg_hpy();
+              /*不用setInterval每次用一个线程
+               RefreshMsgs = setInterval(function(){
+                   //定时器3秒向后端请求
+                   GetNewMsg_hpy();
+                       },3000);*/
+               $("#contact-list a").click(function(){
+
+                   //点中与谁聊天的颜色改变，并且把名字赋予dialog-box-head
+                  $ (this).addClass("active");
+                   $(this).children("span").addClass("hide");
+                   $(this).children("span").text("0");
+                   $(this).siblings().removeClass("active");//同级别siblings,切换聊天人
+                   //console.log("hello");
+                   SwitchChatBoxhpy(this);
+               });
+           });
+
+           //抓取回车键，发送消息，把消息发送到后台
+$("body").delegate("textarea","keydown",function(hpy){
+    if(hpy.which == 13){
+        var msg_text = $("textarea").val();
+        if($.trim(msg_text).length > 0){
+            console.log(msg_text);
+            SendMsg_hpy(msg_text);
+        }
+        AddSentMsgIntoBoxhpy(msg_text);
+        //消息添加到对话框的里
+        $("textarea").val('')
+    }
+});
+function SwitchChatBoxhpy(ele){
+    //
+    var currenthpy_uid = $(ele).attr("contact-id");
+     var currenthpy_dialog_type = $(ele).attr("contact-type");
+     var currenthpy_name = $(ele).text();
+    //点之前的id
+    var old_session_id = $(".dialog-box-head span").attr("contact-id");
+    var old_session_type = $(".dialog-box-head span").attr("contact-type");
+    //获取名字，获取a标签html，赋值
+    //console.log("test"+currenthpy_name);
+    //选择联系列表映射
+
+    //改之前保存seesion
+     Session_hpy(old_session_id,old_session_type,'dump');
+     //把内容展现在页面上
+     var current_dialog_content = Session_hpy(currenthpy_uid,currenthpy_dialog_type,'load');
+     $(".dialog-box-content").html(current_dialog_content);
+
+    var dialoghpy_head_html ="<span contact-id='"+ currenthpy_uid+"'   contact-type='"+currenthpy_dialog_type+ "'>"+currenthpy_name+"</span>";
+
+    $(".dialog-box-head").html(dialoghpy_head_html);
+    console.log(dialoghpy_head_html);
+    console.log(current_dialog_content);
+}
+//
+function Session_hpy(contact_id,contact_type,action){
+    if (action == 'dump'){
+        //保存当前聊天记录
+        var current_dialog_content = $(".dialog-box-content").html();
+        all_dialog_sessions[contact_type][contact_id] = current_dialog_content;
+    }
+    else if(action =='load'){
+        //把指定的contact id的聊天记录加载出来
+        var new_dialog_content = '';
+        if (all_dialog_sessions[contact_type].hasOwnProperty(contact_id)){
+            new_dialog_content = all_dialog_sessions[contact_type][contact_id]
+        }
+        return new_dialog_content;
+    }
+}
+function AddSentMsgIntoBoxhpy(msg_text){
+    //自己发的消息在右边，别人发的在左边
+    //pull right bootstrap的样式，切换在右边
+    var msg_div_hpy = "<div style='padding:18px' class='row'><div class='pull-right'>"+
+                    "<span>"+"{{ request.user.userprofilehpy.name }}" + "</span>"+
+                    "<span>"+new Date().toLocaleTimeString()+"</span>"+
+                    "<p>"+msg_text+"</p>"+"</div></div>";
+    $(".dialog-box-content").append(msg_div_hpy);
+
+    //做一个向下的动画效果，把新发的消息放在最下面
+    $(".dialog-box-content").animate({
+            scrollTop:$(".dialog-box-content")[0].scrollHeight},500
+    );
+}
+           //ajax 用get去后台取消息。取回来的是json，反序列化
+
+     function GetNewMsg_hpy(){
+
+               var current_contact_id_hpy = $(".dialog-box-head span").attr("contact-id");
+                var current_contact_name_hpy = $(".dialog-box-head span").text();
+               $.get("{% url 'get_new_msg'%}",{'uid':"{{ request.user.userprofilehpy.id }}"},function(callback_hpy){
+                  console.log(callback_hpy);
+                   callback_hpy =JSON.parse(callback_hpy);
+                   $.each(callback_hpy,function(index,msg_hpy){
+                       if(msg_hpy.from_id == current_contact_id_hpy){
+                           //判断消息是否属于当前聊天的窗口
+                           var msg_div = "<div style='padding:18px' class ='row'>"+
+                                           "<span>"+current_contact_name_hpy+"</span>"+
+                                           "<span>"+msg_hpy.date+"</span>"+
+                                           "<p>"+msg_hpy.msg +"</p>"+ "</div>";
+                           //console.log("hello"+msg_div);
+                            $(".dialog-box-content").append(msg_div);
+                       }
+                       //设置没有读取的消息数
+
+                       else{
+                           //发送这条消息的人，当前它的对话框没被打开。所以只能更新消息数
+                           var msg_count_ele = $("#contact-list a[contact-id='"+msg_hpy.from_id +"'] span");
+                           msg_count_ele.text(parseInt(msg_count_ele.text()) + 1);
+                           msg_count_ele.removeClass("hide");
+                           //把消息存起来保存在临时变量中
+                           var msg_sender_name = $("#contact-list a[contact-id='"+msg_hpy.from_id +"']").text();
+                            var msg_div = "<div class='padding:1px' class='row'>"+
+                                           "<span>"+msg_sender_name+"</span>"+
+                                           "<span>"+msg_hpy.date+"</span>"+
+                                           "<p>"+msg_hpy.msg +"</p>"+
+                                           "</div>";
+
+                            var old_session_content = Session_hpy(msg_hpy.from_id,msg_hpy.contact_type,'load');
+                            var new_session_content = old_session_content+msg_div;
+                           all_dialog_sessions[msg_hpy.contact_type][msg_hpy.from_id] = new_session_content;
+
+                       }
+                       //get本身不堵塞
+                       //console.log(msg_hpy.from_id);
+
+                   });//end each
+                   GetNewMsg_hpy();
+               });//end get
+        // GetNewMsg_hpy();
+         console.log('----no block------')
+     }
+           //利用ajax把消息发送到后台，时间由服务器端收到加上
+           //信息包括由谁发送，发给谁，消息内容和发送方式，群发还是个人
+
+function SendMsg_hpy(msg){
+    //js字典python无法识别，把字典转换成json发到后台，后台在反序列化提取
+    var msg_dic={
+        'from_id': "{{ request.user.userprofilehpy.id }}",
+        'to_id':$(".dialog-box-head span").attr("contact-id"),
+        'contact_type':$(".dialog-box-head span").attr("contact-type"),
+        'msg':msg
+    }
+    //用ajax post
+    //或者,post发送消息
+    //callback_hpy返回值
+    //function(callback_hpy)回调函数
+    //post,加验证处理csrf跨站
+    $.post("{% url 'chat_send_msg' %}",{'data':JSON.stringify(msg_dic),'csrfmiddlewaretoken':$("input[name='csrfmiddlewaretoken']").val()},function(callback_hpy){
+        console.log(callback_hpy);
+    })
+}
+</script>
+  {% endblock %}

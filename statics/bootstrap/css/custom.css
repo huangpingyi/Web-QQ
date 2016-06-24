@@ -1,0 +1,65 @@
+
+
+.left-content-panel{
+
+    border: 2px solid crimson;
+}
+.right-sidebar{
+
+    border: 2px solid black;
+}
+.article-head-img img{
+    height: 125px;
+    width: 220px;
+}
+.article-box{
+
+}
+.article-summary{
+    margin-left: 35px;
+}
+
+.chat-box{
+    height: 500px;
+    border: 1px solid greenyellow;
+}
+.contact-list{
+    height: 100%;
+    border: 1px solid crimson;
+
+}
+
+.contact-list-head{
+    margin-top:10px;
+    margin-bottom: 25px;
+}
+
+.dialog-box{
+    height:100%;
+    border: 1px solid mediumpurple;
+    margin-bottom: 0px;
+    margin-left: 25%;
+    padding: 10px;
+
+}
+
+.dialog-box-head{
+    height: 10%;
+    background-color:#fff8f8;
+}
+
+.dialog-box-content{
+    height: 70%;
+    background-color:aliceblue;
+    overflow: auto;
+    padding:18px;
+}
+.dialog-box-utils{
+    height: 5%;
+    background-color: #f1f1e3;
+}
+.dialog-box-sendmsg textarea{
+    height: 100%;
+    width: 100%;
+    resize: none;
+}
