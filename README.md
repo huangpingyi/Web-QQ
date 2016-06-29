@@ -1,3 +1,2 @@
 # bbs
-python 
-效果图
+python 模拟开发web QQ
